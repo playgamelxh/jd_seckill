@@ -32,6 +32,7 @@ class SpiderSession:
         self.user_agent = global_config.getRaw('config', 'DEFAULT_USER_AGENT')
 
         self.session = self._init_session()
+        self.MAXTIME = 60
 
     def _init_session(self):
         session = requests.session()
@@ -284,6 +285,7 @@ class JdSeckill(object):
         self.session = self.spider_session.get_session()
         self.user_agent = self.spider_session.user_agent
         self.nick_name = None
+        self.MAXTIME = 60
 
     def login_by_qrcode(self):
         """
@@ -354,15 +356,29 @@ class JdSeckill(object):
         """
         抢购
         """
+        start = time.time()
         while True:
             try:
+
                 self.request_seckill_url()
                 while True:
                     self.request_seckill_checkout_page()
                     self.submit_seckill_order()
+
+                    # 超时自动关闭
+                    end = time.time()
+                    if (int(end) - int(start) > self.MAXTIME):
+                        return
+
             except Exception as e:
                 logger.info('抢购发生异常，稍后继续执行！', e)
+
             wait_some_time()
+
+            # 超时自动关闭
+            end = time.time()
+            if (int(end) - int(start) > self.MAXTIME):
+                return
 
     def make_reserve(self):
         """商品预约"""
@@ -444,6 +460,8 @@ class JdSeckill(object):
             'Host': 'itemko.jd.com',
             'Referer': 'https://item.jd.com/{}.html'.format(self.sku_id),
         }
+
+        start = time.time()
         while True:
             resp = self.session.get(url=url, headers=headers, params=payload)
             resp_json = parse_json(resp.text)
@@ -459,6 +477,11 @@ class JdSeckill(object):
             else:
                 logger.info("抢购链接获取失败，稍后自动重试")
                 wait_some_time()
+
+            # 超时自动关闭
+            end = time.time()
+            if (int(end) - int(start) > self.MAXTIME):
+                return
 
     def request_seckill_url(self):
         """访问商品的抢购链接（用于设置cookie等"""
