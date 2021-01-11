@@ -1,5 +1,6 @@
 
 import sys
+import time
 from jd_spider_requests import JdSeckill
 
 
@@ -31,6 +32,9 @@ if __name__ == '__main__':
     #     print('没有此功能')
     #     sys.exit(1)
     # print(sys.argv[1])
+
+    time.sleep(50)
+
     if sys.argv[1] == '1':
         jd_seckill.reserve()
     elif sys.argv[1] == '2':
